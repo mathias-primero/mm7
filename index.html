@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ferramenta educativa para identificar e decodificar textos em Base64 ou hexadecimal localmente.">
+  <title>Decodificador Seguro</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --panel: #111a2e;
+      --panel-2: #17233b;
+      --text: #e5eefc;
+      --muted: #9aacc8;
+      --primary: #65a7ff;
+      --primary-strong: #347be0;
+      --success: #52d69a;
+      --warning: #ffd166;
+      --danger: #ff7b8b;
+      --border: rgba(157, 184, 225, .18);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      color: var(--text);
+      background: radial-gradient(circle at 10% 0%, #172b4a 0, transparent 38%), var(--bg);
+      font: 16px/1.5 system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    .container { width: min(1050px, calc(100% - 32px)); margin: auto; }
+    header { padding: 56px 0 26px; text-align: center; }
+    .badge {
+      display: inline-block; padding: 6px 12px; border: 1px solid var(--border);
+      border-radius: 999px; color: var(--primary); background: rgba(101, 167, 255, .08);
+      font-size: .82rem; font-weight: 700; letter-spacing: .04em;
+    }
+    h1 { margin: 16px 0 8px; font-size: clamp(2rem, 5vw, 3.4rem); line-height: 1.1; }
+    .subtitle { max-width: 680px; margin: auto; color: var(--muted); }
+    .card {
+      border: 1px solid var(--border); border-radius: 20px; padding: 24px;
+      background: rgba(17, 26, 46, .88); box-shadow: 0 18px 60px rgba(0, 0, 0, .25);
+    }
+    .toolbar { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; margin-bottom: 18px; }
+    label { display: block; margin-bottom: 7px; color: var(--muted); font-size: .9rem; font-weight: 600; }
+    select, textarea, button {
+      border: 1px solid var(--border); border-radius: 10px; color: var(--text);
+      background: var(--panel-2); font: inherit;
+    }
+    select, button { min-height: 44px; padding: 0 15px; }
+    select { min-width: 180px; }
+    button { cursor: pointer; font-weight: 700; transition: transform .15s, background .15s; }
+    button:hover { transform: translateY(-1px); }
+    .primary { border-color: transparent; background: var(--primary-strong); }
+    .secondary { background: transparent; }
+    textarea { display: block; width: 100%; min-height: 170px; padding: 15px; resize: vertical; outline: none; }
+    textarea:focus, select:focus, button:focus-visible { outline: 3px solid rgba(101, 167, 255, .35); outline-offset: 2px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+    .result { margin-top: 20px; }
+    .result-head { display: flex; justify-content: space-between; gap: 16px; align-items: center; }
+    .result-head h2 { margin: 0; font-size: 1.1rem; }
+    #status { color: var(--muted); font-size: .9rem; }
+    #output { min-height: 130px; background: #0c1425; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .notice {
+      display: flex; gap: 12px; margin-top: 18px; padding: 14px 16px; border-radius: 12px;
+      color: #ffe9ad; background: rgba(255, 209, 102, .08); border: 1px solid rgba(255, 209, 102, .25);
+    }
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0 56px; }
+    .info { padding: 18px; border: 1px solid var(--border); border-radius: 14px; background: rgba(23, 35, 59, .52); }
+    .info h3 { margin: 0 0 5px; font-size: 1rem; }
+    .info p { margin: 0; color: var(--muted); font-size: .92rem; }
+    .error { color: var(--danger) !important; }
+    footer { padding: 22px 0 34px; text-align: center; color: var(--muted); font-size: .85rem; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } .toolbar > div, select, .toolbar button { width: 100%; } }
+  </style>
+</head>
+<body>
+  <header class="container">
+    <span class="badge">FERRAMENTA EDUCATIVA • 100% LOCAL</span>
+    <h1>Decodificador Seguro</h1>
+    <p class="subtitle">Converta textos codificados em Base64 ou hexadecimal diretamente no seu navegador, sem enviar dados para um servidor.</p>
+  </header>
+
+  <main class="container">
+    <section class="card" aria-labelledby="tool-title">
+      <h2 id="tool-title" hidden>Ferramenta de decodificação</h2>
+      <div class="toolbar">
+        <div>
+          <label for="format">Formato de entrada</label>
+          <select id="format">
+            <option value="base64">Base64</option>
+            <option value="hex">Hexadecimal</option>
+          </select>
+        </div>
+        <button class="primary" id="decode">Decodificar</button>
+        <button class="secondary" id="example">Carregar exemplo</button>
+      </div>
+
+      <label for="input">Texto codificado</label>
+      <textarea id="input" placeholder="Cole aqui um texto em Base64 ou hexadecimal..." spellcheck="false"></textarea>
+      <div class="actions">
+        <button class="secondary" id="clear">Limpar</button>
+      </div>
+
+      <div class="result">
+        <div class="result-head">
+          <h2>Resultado</h2>
+          <span id="status" role="status" aria-live="polite">Aguardando entrada</span>
+        </div>
+        <textarea id="output" readonly placeholder="O resultado aparecerá aqui..."></textarea>
+        <div class="actions">
+          <button class="secondary" id="copy">Copiar resultado</button>
+        </div>
+      </div>
+
+      <div class="notice" role="note">
+        <span aria-hidden="true">⚠️</span>
+        <div><strong>Importante:</strong> isso decodifica representações reversíveis como Base64 e hexadecimal. Hashes de senhas (bcrypt, Argon2, SHA-256 etc.) não podem ser “descriptografados”. Use somente dados próprios e autorizados.</div>
+      </div>
+    </section>
+
+    <section class="grid" aria-label="Informações sobre os formatos">
+      <article class="info"><h3>Base64</h3><p>Uma forma de representar bytes usando caracteres ASCII. Não é criptografia e não protege informações.</p></article>
+      <article class="info"><h3>Hexadecimal</h3><p>Representa cada byte com dois dígitos hexadecimais, de 00 a FF.</p></article>
+      <article class="info"><h3>Privacidade</h3><p>O processamento acontece no navegador. Nada é salvo nem transmitido por este arquivo.</p></article>
+    </section>
+  </main>
+
+  <footer>Projeto demonstrativo para estudos de codificação e segurança digital responsável.</footer>
+
+  <script>
+    const input = document.querySelector('#input');
+    const output = document.querySelector('#output');
+    const format = document.querySelector('#format');
+    const status = document.querySelector('#status');
+
+    function setStatus(message, isError = false) {
+      status.textContent = message;
+      status.classList.toggle('error', isError);
+    }
+
+    function decodeBase64(value) {
+      const normalized = value.replace(/\s/g, '');
+      if (!normalized || !/^[A-Za-z0-9+/]*={0,2}$/.test(normalized) || normalized.length % 4 === 1) {
+        throw new Error('Base64 inválido. Verifique os caracteres e o preenchimento (=).');
+      }
+      const binary = atob(normalized);
+      const bytes = Uint8Array.from(binary, char => char.charCodeAt(0));
+      return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    }
+
+    function decodeHex(value) {
+      const normalized = value.replace(/[\s:-]/g, '');
+      if (!normalized || !/^[0-9a-fA-F]+$/.test(normalized) || normalized.length % 2 !== 0) {
+        throw new Error('Hexadecimal inválido. Use pares de caracteres de 00 a FF.');
+      }
+      const bytes = new Uint8Array(normalized.match(/.{2}/g).map(pair => parseInt(pair, 16)));
+      return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    }
+
+    function decode() {
+      try {
+        const value = input.value.trim();
+        if (!value) throw new Error('Digite ou cole um valor para decodificar.');
+        output.value = format.value === 'base64' ? decodeBase64(value) : decodeHex(value);
+        setStatus('Decodificado localmente');
+      } catch (error) {
+        output.value = '';
+        setStatus(error.message, true);
+      }
+    }
+
+    document.querySelector('#decode').addEventListener('click', decode);
+    document.querySelector('#clear').addEventListener('click', () => {
+      input.value = ''; output.value = ''; setStatus('Aguardando entrada'); input.focus();
+    });
+    document.querySelector('#example').addEventListener('click', () => {
+      input.value = format.value === 'base64' ? 'U2VuaGEgZGUgZXhlbXBsbyE=' : '53656e6861206465206578656d706c6f21';
+      decode();
+    });
+    document.querySelector('#copy').addEventListener('click', async () => {
+      if (!output.value) return setStatus('Não há resultado para copiar.', true);
+      try { await navigator.clipboard.writeText(output.value); setStatus('Resultado copiado'); }
+      catch { setStatus('Não foi possível acessar a área de transferência.', true); }
+    });
+    format.addEventListener('change', () => { input.value = ''; output.value = ''; setStatus('Aguardando entrada'); });
+  </script>
+</body>
+</html>
